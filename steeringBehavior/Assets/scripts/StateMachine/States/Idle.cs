@@ -5,7 +5,7 @@ using UnityEngine;
 public class Idle : BaseState
 {
     Vehicle vehicle;
-    public Idle(SoccerState stateMachine,Vehicle _vehicle) : base("Idle",stateMachine) 
+    public Idle(SoccerStateMachine stateMachine,Vehicle _vehicle) : base("Idle",stateMachine) 
     {
         vehicle = _vehicle;
     }
@@ -25,7 +25,7 @@ public class Idle : BaseState
         vehicle.GetVelocity(true,Behaviors.Seek);
         if (countDown < 0)
         {
-            stateMachine.ChangeState(((SoccerState)stateMachine).notInPossOpenState);
+            stateMachine.ChangeState(((SoccerStateMachine)stateMachine).notInPossOpenState);
         }
     }
     public override void OnExit()

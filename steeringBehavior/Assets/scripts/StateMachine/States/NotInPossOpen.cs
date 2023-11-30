@@ -9,7 +9,7 @@ using UnityEngine;
 public class NotInPossOpen : BaseState
 {
     Vehicle vehicle;
-    public NotInPossOpen(SoccerState stateMachine, Vehicle _vehicle) : base("NotInPossOpen", stateMachine)
+    public NotInPossOpen(SoccerStateMachine stateMachine, Vehicle _vehicle) : base("NotInPossOpen", stateMachine)
     {
         vehicle = _vehicle;
     }
@@ -23,7 +23,7 @@ public class NotInPossOpen : BaseState
     public override void OnUpdate()
     {
         base.OnUpdate();
-        vehicle.MoveRobot();
+        vehicle.MoveRobot(vehicle.totalPower);
     }
     public override void OnFixedUpdate()
     {

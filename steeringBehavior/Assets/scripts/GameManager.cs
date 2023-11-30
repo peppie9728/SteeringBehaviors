@@ -11,12 +11,16 @@ public class GameManager : MonoBehaviour
     public TextMeshProUGUI[] team1UI;
     public TextMeshProUGUI[] team2UI;
 
+    [Header("SpawnPoints")]
     public GameObject[] ResetPointsTeam1;
     public GameObject[] ResetPointsTeam2;
+    public GameObject spawnPointPrefab;
+    
+    [HideInInspector]
     public Vehicle ballCarrier;
     public GameObject ball;
     public bool resetting;
-    public GameObject spawnPointPrefab;
+   
 
     public void Start()
     {

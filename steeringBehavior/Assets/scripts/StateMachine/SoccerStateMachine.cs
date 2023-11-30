@@ -2,7 +2,7 @@ using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 
-public class SoccerState : StateMachine
+public class SoccerStateMachine : StateMachine
 {
     
     public Vehicle vehicle;

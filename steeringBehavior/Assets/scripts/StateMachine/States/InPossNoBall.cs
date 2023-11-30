@@ -9,7 +9,7 @@ using UnityEngine;
 public class InPossNoBall : BaseState
 {
     Vehicle vehicle;
-    public InPossNoBall(SoccerState stateMachine, Vehicle _vehicle) : base("InPossNoBall", stateMachine)
+    public InPossNoBall(SoccerStateMachine stateMachine, Vehicle _vehicle) : base("InPossNoBall", stateMachine)
     {
         vehicle = _vehicle;
     }
@@ -29,8 +29,12 @@ public class InPossNoBall : BaseState
             vehicle.ChaseTarget = vehicle.gameManager.ballCarrier;
 
         }
+        vehicle.MoveRobot(vehicle.totalPower);
+    }
+    public override void OnFixedUpdate()
+    {
+        base.OnFixedUpdate();
         vehicle.GetVelocity(true, Behaviors.Support);
-        vehicle.MoveRobot();
     }
     public override void OnExit()
     {

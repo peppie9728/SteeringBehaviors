@@ -9,7 +9,7 @@ using UnityEngine;
 public class NotInPossPlayer : BaseState
 {
     Vehicle vehicle;
-    public NotInPossPlayer(SoccerState stateMachine, Vehicle _vehicle) : base("NotInPossPlayer", stateMachine)
+    public NotInPossPlayer(SoccerStateMachine stateMachine, Vehicle _vehicle) : base("NotInPossPlayer", stateMachine)
     {
         vehicle = _vehicle;
     }
@@ -24,7 +24,7 @@ public class NotInPossPlayer : BaseState
     public override void OnUpdate()
     {
         base.OnUpdate();
-        vehicle.MoveRobot();
+        vehicle.MoveRobot(vehicle.totalPower);
     }
 
     public override void OnFixedUpdate()

@@ -34,7 +34,7 @@ public class Vehicle : MovingEntity {
 	public Transform resetPoint;
 
 	//Finite StateMachine
-	public SoccerState stateMachine;
+	public SoccerStateMachine stateMachine;
 	[HideInInspector]
 	public GameManager gameManager;
 	[HideInInspector]
@@ -84,7 +84,7 @@ public class Vehicle : MovingEntity {
 		//Find object in scene and get the component GameManager.
 		gameManager = GameObject.FindWithTag("gameManager").GetComponent<GameManager>();
 		
-		//find all other robots except this robot.
+		//find all other robots except this robot, necessary for the avoidance behavior.
 		GameObject[] tempRob = GameObject.FindGameObjectsWithTag("Player");
 		allRobots = new GameObject [tempRob.Length - 1];
 		int i = 0;
@@ -102,8 +102,9 @@ public class Vehicle : MovingEntity {
 
 	void Update () 
 	{
+		//handleStun maybe in a state of its own
 		HandleStun();
-        RotateRobot();
+		RotateRobot(totalTorque);
 		GrabBall();
     }
 	
@@ -158,13 +159,13 @@ public class Vehicle : MovingEntity {
         }
 	}
 
-	public void RotateRobot()
+	public void RotateRobot(float torque)
     {
 		//Handle the rotation
-		float HoekVersnelling = totalTorque * m_fMass;
+		float HoekVersnelling = torque * m_fMass;
 		transform.Rotate(0,HoekVersnelling * Time.deltaTime,0);
 	}
-	public Vector2 GetVelocity(bool avoidance,Behaviors bh)
+	public void GetVelocity(bool avoidance,Behaviors bh)
     {
 		// define position in 2D Vector
 		m_vPos = new Vector2(transform.position.x, transform.position.z);
@@ -173,18 +174,16 @@ public class Vehicle : MovingEntity {
 		SteeringForce = m_pSteering.Calculate(avoidance,bh);
 		
 		//convert the global steeringForce into a local vector relative to the robot.
-		relativeSteering = SteeringForce.RelitiveVector(transform.right, transform.forward);
+		relativeSteering = SteeringForce.RelativeVector(transform.right, transform.forward);
 
 		differentialSteering(relativeSteering);
-
-		return m_vVelocity;
 	}
 
-	public void MoveRobot()
+	public void MoveRobot(float power)
     {
-		Vector3 myTranslate = new Vector3(myTransform.position.x + (transform.forward.x * totalPower * Time.deltaTime),
+		Vector3 myTranslate = new Vector3(myTransform.position.x + (transform.forward.x * power * Time.deltaTime),
 										  myTransform.position.y,
-										  myTransform.position.z + (transform.forward.z * totalPower * Time.deltaTime));
+										  myTransform.position.z + (transform.forward.z * power * Time.deltaTime));
 		myTransform.position = myTranslate;
 	}
 
@@ -204,8 +203,8 @@ public class Vehicle : MovingEntity {
 		}
     }
 
-	//changes global vector to local vector
-
+	
+	//this function is called in update to update the ball position when the ball is grabbed
 	public void GrabBall()
     {
 		if (targetGrab != null)
@@ -239,17 +238,17 @@ public class Vehicle : MovingEntity {
         {
 			if (vehicle == this)
             {
-				stateMachine.ChangeState(((SoccerState)stateMachine).inPossWithBallState);
+				stateMachine.ChangeState(((SoccerStateMachine)stateMachine).inPossWithBallState);
             }
 			else
             {
-				stateMachine.ChangeState(((SoccerState)stateMachine).inPossNoBallState);
+				stateMachine.ChangeState(((SoccerStateMachine)stateMachine).inPossNoBallState);
 				ChaseTarget = gameManager.ballCarrier;
 			}
         }
         else
         {
-			stateMachine.ChangeState(((SoccerState)stateMachine).notInPossPlayerState);
+			stateMachine.ChangeState(((SoccerStateMachine)stateMachine).notInPossPlayerState);
 			ChaseTarget = vehicle;
 		}
     }
@@ -260,7 +259,7 @@ public class Vehicle : MovingEntity {
 	public void ResetPosition(int i)
     {
 		gameManager.ballCarrier = null;
-		stateMachine.ChangeState(((SoccerState)stateMachine).resetPositionState);
+		stateMachine.ChangeState(((SoccerStateMachine)stateMachine).resetPositionState);
     }
 
 	//this function is called after a robot loses the ball
@@ -273,6 +272,6 @@ public class Vehicle : MovingEntity {
 			gameManager.ballCarrier = null;
 			isHit = true;
         }
-		stateMachine.ChangeState(((SoccerState)stateMachine).notInPossOpenState);
+		stateMachine.ChangeState(((SoccerStateMachine)stateMachine).notInPossOpenState);
     }
 }

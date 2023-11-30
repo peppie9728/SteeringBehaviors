@@ -89,7 +89,7 @@ public static class ExtensionMethods
 
 
 	//Changes vector from local to global Vector
-	public static Vector2 RelitiveVector(this Vector2 input, Vector3 right, Vector3 forward)
+	public static Vector2 RelativeVector(this Vector2 input, Vector3 right, Vector3 forward)
 	{
 		Vector2 temp = new Vector2(0, 0);
 		temp.x = input.x * right.x + input.y * right.z;

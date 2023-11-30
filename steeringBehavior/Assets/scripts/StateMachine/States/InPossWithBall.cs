@@ -9,7 +9,7 @@ using UnityEngine;
 public class InPossWithBall : BaseState
 {
     Vehicle vehicle;
-    public InPossWithBall(SoccerState stateMachine, Vehicle _vehicle) : base("InPossWithBall", stateMachine)
+    public InPossWithBall(SoccerStateMachine stateMachine, Vehicle _vehicle) : base("InPossWithBall", stateMachine)
     {
         vehicle = _vehicle;
     }
@@ -27,8 +27,15 @@ public class InPossWithBall : BaseState
     {
         base.OnUpdate();
 
+
+
+        vehicle.MoveRobot(vehicle.totalPower);
+    }
+
+    public override void OnFixedUpdate()
+    {
+        base.OnFixedUpdate();
         vehicle.GetVelocity(true, Behaviors.Seek);
-        vehicle.MoveRobot();
     }
     public override void OnExit()
     {

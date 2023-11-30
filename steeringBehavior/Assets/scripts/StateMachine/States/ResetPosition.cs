@@ -10,7 +10,7 @@ public class ResetPosition : BaseState
 {
     Vehicle vehicle;
     bool waiting;
-    public ResetPosition(SoccerState stateMachine, Vehicle _vehicle) : base("ResetPosition", stateMachine) 
+    public ResetPosition(SoccerStateMachine stateMachine, Vehicle _vehicle) : base("ResetPosition", stateMachine) 
     {
         vehicle = _vehicle;
     }
@@ -26,7 +26,7 @@ public class ResetPosition : BaseState
     public override void OnUpdate()
     {
         base.OnUpdate();
-        vehicle.MoveRobot();
+        vehicle.MoveRobot(vehicle.totalPower);
     }
 
     public override void OnFixedUpdate()
@@ -38,7 +38,7 @@ public class ResetPosition : BaseState
             vehicle.waiting = true;
             if (vehicle.gameManager.checkReady())
             {
-                stateMachine.ChangeState(((SoccerState)stateMachine).idleState);
+                stateMachine.ChangeState(((SoccerStateMachine)stateMachine).idleState);
             }
         }
     }

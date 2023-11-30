@@ -5,8 +5,6 @@ public class MovingEntity : BaseGameEntity {
 
 	[HideInInspector]
 	public Vector2 m_vPos;
-	[HideInInspector]
-	public Vector2 m_vVelocity;
 
 	// a normalized vector pointing in the direction the entity is heading
 	[HideInInspector]

@@ -18,7 +18,7 @@ public class ball : MonoBehaviour
         switch (collision.gameObject.tag)
         {
             case "goal":
-            EventManager.Goal.Invoke(currentBallHolder.teamID);
+                EventManager.Goal.Invoke(currentBallHolder.teamID);
                 break;
             case "death":
                 transform.position = new Vector3(transform.position.x, 5, transform.position.z);
@@ -32,6 +32,7 @@ public class ball : MonoBehaviour
         this.transform.position = new Vector3(100, 100, 100);
         this.GetComponent<Rigidbody>().isKinematic = true;
     }
+    //Is Invoked when someone catches the ball.
     public void HandleBall(int i, Vehicle v)
     {
         currentBallHolder = v;

@@ -43,15 +43,16 @@ public class SteeringBehaviors {
 				temp = Support();
 				break;
 		}
-		// if the steering has to avoid other obstacles
+		// if the steeringbehavior has to avoid other obstacles
 		if (avoidance)
 		{
 			temp = temp + AvoidObstacles(m_pVehicle.allRobots);
 		}
 		// if the steering force exceeds the max force
 		if (temp.sqrMagnitude > (m_pVehicle.m_fMaxForce * m_pVehicle.m_fMaxForce))
-
-		{ temp = temp.normalized.MultiplyBy(m_pVehicle.m_fMaxForce).Truncate(); }
+		{
+			temp = temp.normalized.MultiplyBy(m_pVehicle.m_fMaxForce).Truncate();
+		}
 		return temp;
 	}
 	//------------------------------- Seek -----------------------------------
@@ -79,11 +80,12 @@ public class SteeringBehaviors {
 		
 		Vector2 DesiredVelocity = temp.normalized.MultiplyBy (m_pVehicle.m_fMaxSpeed);
 		
-		return (DesiredVelocity - m_pVehicle.m_vVelocity);
+		return (DesiredVelocity);
 	}
 	//----------------------------- Arrive -------------------------------------
 	//
 	// 
+	//
 	//------------------------------------------------------------------------
 
 	Vector2 Arrive(Vector2 targetPos)
@@ -103,7 +105,7 @@ public class SteeringBehaviors {
 			//Outside the slowing area. 
 			DesiredVelocity = temp.normalized.MultiplyBy(m_pVehicle.m_fMaxSpeed);
 		}
-		return (DesiredVelocity - m_pVehicle.m_vVelocity);
+		return (DesiredVelocity);
 	}
 	
 	//-----------------------------allign---------------------------------------
@@ -207,12 +209,15 @@ public class SteeringBehaviors {
 		// Iterate through the obstacles to find the most threatening one
 		foreach (GameObject obs in obstacles)
 		{
-			bool collision = LineIntersectsCircle(ahead, ahead2, obs);
-
-			// If there is a collision and it's the most threatening or the only one so far, update mostThreat
-			if (collision && (mostThreat == null || Vector3.Distance(m_pVehicle.transform.position, obs.transform.position) < Vector3.Distance(m_pVehicle.transform.position, mostThreat.transform.position)))
+			if (obs != m_pVehicle.gameObject)
 			{
-				mostThreat = obs;
+				bool collision = LineIntersectsCircle(ahead, ahead2, obs);
+
+				// If there is a collision and it's the most threatening or the only one so far, update mostThreat
+				if (collision && (mostThreat == null || Vector3.Distance(m_pVehicle.transform.position, obs.transform.position) < Vector3.Distance(m_pVehicle.transform.position, mostThreat.transform.position)))
+				{
+					mostThreat = obs;
+				}
 			}
 		}
 		return mostThreat;
