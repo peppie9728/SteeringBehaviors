@@ -4,8 +4,8 @@ using UnityEngine;
 
 public class StateMachine : MonoBehaviour
 {
-    BaseState currentState;
-
+    protected BaseState currentState;
+    public string currentStateName;
     // Start is called before the first frame update
     void Start()
     {
@@ -27,6 +27,7 @@ public class StateMachine : MonoBehaviour
     public void ChangeState(BaseState newState)
     {
         currentState.OnExit();
+        currentStateName = newState.name;
         currentState = newState;
         newState.OnEnter();
     }

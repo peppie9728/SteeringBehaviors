@@ -22,9 +22,10 @@ public class Idle : BaseState
     {
         base.OnUpdate();
         countDown -= Time.deltaTime;
+        vehicle.GetVelocity(true,Behaviors.Seek);
         if (countDown < 0)
         {
-            stateMachine.ChangeState(((SoccerState)stateMachine).inPossesionState);
+            stateMachine.ChangeState(((SoccerState)stateMachine).notInPossOpenState);
         }
     }
     public override void OnExit()

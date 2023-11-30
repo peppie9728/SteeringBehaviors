@@ -5,10 +5,10 @@ public class Vehicle : MovingEntity {
 
 	// a pointer to the steering behavior class
 	SteeringBehaviors m_pSteering;
-	float maxPower = 10;
+	//TankControl & SteeringBehavior variables
 	float powerLeftWheel;
 	float powerRightWheel;
-	float totalPower;
+	public float totalPower;
 	float totalTorque;
 	public Vector2 relativeSteering;
 	public float scaling;
@@ -31,17 +31,20 @@ public class Vehicle : MovingEntity {
 	public Transform aTarget;
 	public GameObject targetGrab;
 	public Transform ballPoint;
+	public Transform resetPoint;
 
-	
-	int counter = 0;
-	public int counterValue;
-
+	//Finite StateMachine
 	public SoccerState stateMachine;
 	[HideInInspector]
 	public GameManager gameManager;
 	[HideInInspector]
+
+	//variables for the timer used in stun function.
 	public bool isHit;
 	float timer;
+
+	//this variable is used in the Steering behavior script to find the enemy with the ball.
+	public Vehicle ChaseTarget;
 
 	public bool waiting;
 	// Gidi: the 2D version of position
@@ -61,19 +64,13 @@ public class Vehicle : MovingEntity {
 	public Vector2 targetPos2 {
 		get
 		{
-			Vector2 temp = new Vector2();
-			temp.x = aTarget.position.x;
-			temp.y = aTarget.position.z;
-			
+				Vector2 temp = new Vector2();
+				temp.x = aTarget.position.x;
+				temp.y = aTarget.position.z;
 			return temp;
 		}
 	}
 
-	// a pointer to the world data enabling the vehicle to access any obstacle
-	// path, wall or agent data
-	// @@@
-
-	//
 	private Transform myTransform;
 	// Use this for initialization
 	public void Start() 
@@ -83,7 +80,10 @@ public class Vehicle : MovingEntity {
 		m_pSteering = new SteeringBehaviors(this);
 		m_vPos = new Vector2(transform.position.x, transform.position.z);
 		myTransform = this.gameObject.transform;
+		
+		//Find object in scene and get the component GameManager.
 		gameManager = GameObject.FindWithTag("gameManager").GetComponent<GameManager>();
+		
 		//find all other robots except this robot.
 		GameObject[] tempRob = GameObject.FindGameObjectsWithTag("Player");
 		allRobots = new GameObject [tempRob.Length - 1];
@@ -92,20 +92,21 @@ public class Vehicle : MovingEntity {
 		{
 			if (o != this.gameObject) { allRobots[i] = o; i++; }
 		}
+
+		//Assign Event listeners
+		EventManager.GrabBall += HandleBallGrab;
+		EventManager.Goal += ResetPosition;
+		EventManager.LoseBall += LoseBall;
 	}
 	
-	// Update is called once per frame
+
 	void Update () 
 	{
 		HandleStun();
         RotateRobot();
 		GrabBall();
     }
-    private void FixedUpdate()
-    {
-		//GetVelocity();
-	}
-
+	
     public void differentialSteering(Vector2 velocity)
 	{
 		velocity = velocity.normalized * 128;
@@ -149,11 +150,17 @@ public class Vehicle : MovingEntity {
 		// 7] (Pepijn) Calculate the total torque and linear force of the robot
 		totalTorque = powerLeftWheel + powerRightWheel;
 		totalPower = powerLeftWheel - powerRightWheel;
+
+		// 8] (Pepijn) make sure the total power doesn't exceed the max speed.
+		if (totalPower > m_fMaxSpeed)
+        {
+			totalPower = m_fMaxSpeed;
+        }
 	}
 
 	public void RotateRobot()
     {
-		// Handle the rotation
+		//Handle the rotation
 		float HoekVersnelling = totalTorque * m_fMass;
 		transform.Rotate(0,HoekVersnelling * Time.deltaTime,0);
 	}
@@ -162,44 +169,24 @@ public class Vehicle : MovingEntity {
 		// define position in 2D Vector
 		m_vPos = new Vector2(transform.position.x, transform.position.z);
 		
-		// calculate the combined force from each steering behavior in the vehicles list
-		if (counter == 0)
-		{
-			SteeringForce = m_pSteering.Calculate(avoidance,bh);
-			counter = counterValue;
-		}
-        else
-        {
-			counter--;
-        }
-		relativeSteering = RelitiveVector(SteeringForce, transform.right, transform.forward);
+		// calculate the combined force from each steering behavior
+		SteeringForce = m_pSteering.Calculate(avoidance,bh);
 		
-		// Acceleration = Force / Mass (Newton's Second Law of Motion)
-		Vector2 acceleration = SteeringForce.DivideBy(m_fMass);
-
-		// update velocity 
-		m_vVelocity += acceleration * Time.deltaTime;
+		//convert the global steeringForce into a local vector relative to the robot.
+		relativeSteering = SteeringForce.RelitiveVector(transform.right, transform.forward);
 
 		differentialSteering(relativeSteering);
-
-		// make sure vehicle does not exceed maximum velocity
-		if (m_vVelocity.sqrMagnitude > (m_fMaxSpeed * m_fMaxSpeed))
-		{
-			m_vVelocity = m_vVelocity.normalized.MultiplyBy(m_fMaxSpeed);
-			//new Vector2 ((float) (m_vVelocity.normalized.x * m_dMaxSpeed), (float) (m_vVelocity.normalized.y * m_dMaxSpeed)) ;
-		}
 
 		return m_vVelocity;
 	}
 
 	public void MoveRobot()
     {
-		Vector3 myTranslate = new Vector3(myTransform.position.x + (transform.forward.x *totalPower* Time.deltaTime),
+		Vector3 myTranslate = new Vector3(myTransform.position.x + (transform.forward.x * totalPower * Time.deltaTime),
 										  myTransform.position.y,
-										  myTransform.position.z + (transform.forward.z* totalPower * Time.deltaTime));
+										  myTransform.position.z + (transform.forward.z * totalPower * Time.deltaTime));
 		myTransform.position = myTranslate;
 	}
-
 
 	//Handle all collisions
     private void OnCollisionEnter(Collision collision)
@@ -207,34 +194,17 @@ public class Vehicle : MovingEntity {
         switch (collision.gameObject.tag)
         {
 			case "ball":
-				gameManager.TeamHasBall(this);
-				hasBall = true;
-				targetGrab = targetBall.gameObject;
-				collision.gameObject.GetComponent<ball>().currentBallHolder = this;
-				aTarget = targetGoal;
-				break;
-
-			case "Player":
-				Vehicle temp = collision.gameObject.GetComponent<Vehicle>();
-				temp.targetGrab = null;
-				temp.isHit = true;
-				if (!gameManager.resetting)
+				if (gameManager.ballCarrier == null && !isHit)
 				{
-					aTarget = targetBall;
+					EventManager.GrabBall.Invoke(teamID, this);
+					targetGrab = targetBall.gameObject;
+					gameManager.ballCarrier = this;
 				}
 				break;
 		}
     }
 
-
 	//changes global vector to local vector
-	public Vector2 RelitiveVector(Vector2 input,Vector3 right,Vector3 forward)
-    {
-		Vector2 temp = new Vector2(0,0);
-		temp.x = input.x * right.x + input.y * right.z;
-		temp.y = input.y * forward.z + input.x * forward.x;
-		return temp;
-    }
 
 	public void GrabBall()
     {
@@ -255,8 +225,54 @@ public class Vehicle : MovingEntity {
             {
 				m_fMaxSpeed = 5;
 				isHit = false;
+				timer = 0;
             }
         }
     }
 	
+	//this function is called as the result of the GrabBall event.
+	public void HandleBallGrab(int i, Vehicle vehicle)
+    {
+
+		Debug.Log(this.name);
+		if (i == teamID)
+        {
+			if (vehicle == this)
+            {
+				stateMachine.ChangeState(((SoccerState)stateMachine).inPossWithBallState);
+            }
+			else
+            {
+				stateMachine.ChangeState(((SoccerState)stateMachine).inPossNoBallState);
+				ChaseTarget = gameManager.ballCarrier;
+			}
+        }
+        else
+        {
+			stateMachine.ChangeState(((SoccerState)stateMachine).notInPossPlayerState);
+			ChaseTarget = vehicle;
+		}
+    }
+
+
+	//this function is called after a goal is scored.
+	//and can be used for resetting the game.
+	public void ResetPosition(int i)
+    {
+		gameManager.ballCarrier = null;
+		stateMachine.ChangeState(((SoccerState)stateMachine).resetPositionState);
+    }
+
+	//this function is called after a robot loses the ball
+	public void LoseBall()
+    {
+		if (gameManager.ballCarrier == this)
+        {
+			hasBall = false;
+			targetGrab = null;
+			gameManager.ballCarrier = null;
+			isHit = true;
+        }
+		stateMachine.ChangeState(((SoccerState)stateMachine).notInPossOpenState);
+    }
 }

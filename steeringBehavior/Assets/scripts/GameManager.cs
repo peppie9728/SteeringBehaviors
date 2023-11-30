@@ -1,11 +1,16 @@
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
+using TMPro;
 
 public class GameManager : MonoBehaviour
 {
+    public Vehicle[] allVehicles;
     public Vehicle[] team1;
     public Vehicle[] team2;
+    public TextMeshProUGUI[] team1UI;
+    public TextMeshProUGUI[] team2UI;
+
     public GameObject[] ResetPointsTeam1;
     public GameObject[] ResetPointsTeam2;
     public Vehicle ballCarrier;
@@ -18,60 +23,14 @@ public class GameManager : MonoBehaviour
         SetRespawnPoints();
     }
 
-
-    public void TeamHasBall(Vehicle ballCarrier_)
+    public void Update()
     {
-        ballCarrier = ballCarrier_;
-        bool team = false;
-        foreach(Vehicle v in team1)
-        {
-            if (v == ballCarrier_)
-            {
-                team = true;
-            }
-        }
-        if (team)
-        {
-            foreach (Vehicle v in team1)
-            {
-                v.stateMachine.ChangeState(v.stateMachine.inPossesionState);
-            }
-            foreach (Vehicle v in team2)
-            {
-                v.stateMachine.ChangeState(v.stateMachine.notInPossesionState);
-            }
-        }
-        else
-        {
-            foreach (Vehicle v in team2)
-            {
-                v.stateMachine.ChangeState(v.stateMachine.inPossesionState);
-            }
-            foreach (Vehicle v in team1)
-            {
-                v.stateMachine.ChangeState(v.stateMachine.notInPossesionState);
-            }
-        }
-    }
-
-    public void ResetPlay()
-    {
-        resetting = true;
-        for (int i = 0; i < team1.Length; i++)
-        {
-            team1[i].aTarget = ResetPointsTeam1[i].transform;
-            team1[i].stateMachine.ChangeState(team1[i].stateMachine.resetPositionState);
-        }
-
-        for (int i = 0; i < team2.Length; i++)
-        {
-            team2[i].aTarget = ResetPointsTeam2[i].transform;
-            team2[i].stateMachine.ChangeState(team2[i].stateMachine.resetPositionState);
-        }
+        UpdateStateUI();
     }
 
     public bool checkReady()
     {
+        //checks each team for a bool that is only fufillled when the robot is at its reset point.
         bool result = true;
         foreach(Vehicle v in team1)
         {
@@ -90,6 +49,7 @@ public class GameManager : MonoBehaviour
         }
         if (result)
         {
+            //reaets all of the balls transformations and drops the ball in the middle of the playing field.
             ball.transform.ResetTransformation();
             ball.GetComponent<Rigidbody>().isKinematic = false;
             ball.transform.position = new Vector3(0, 6, 0);
@@ -100,11 +60,14 @@ public class GameManager : MonoBehaviour
 
     public void SetRespawnPoints()
     {
+        //assigns each robot its own respawn point
+
         ResetPointsTeam1 = new GameObject[team1.Length];
         int i = 0;
         foreach (Vehicle v in team1)
         {
             ResetPointsTeam1[i] = Instantiate(spawnPointPrefab);
+            v.resetPoint = ResetPointsTeam1[i].transform;
             ResetPointsTeam1[i].transform.position = v.transform.position;
             i++;
         }
@@ -113,8 +76,21 @@ public class GameManager : MonoBehaviour
         foreach (Vehicle v in team2)
         {
             ResetPointsTeam2[i] = Instantiate(spawnPointPrefab);
+            v.resetPoint = ResetPointsTeam2[i].transform;
             ResetPointsTeam2[i].transform.position = v.transform.position;
             i++;
+        }
+    }
+
+    public void UpdateStateUI()
+    {
+        for (int i = 0; i < team1.Length; i++)
+        {
+            team1UI[i].text = team1[i].name + ": "+ team2[i].stateMachine.currentStateName;
+        }
+        for (int i = 0; i < team2.Length; i++)
+        {
+            team2UI[i].text = team2[i].name + ": " + team2[i].stateMachine.currentStateName;
         }
     }
 }

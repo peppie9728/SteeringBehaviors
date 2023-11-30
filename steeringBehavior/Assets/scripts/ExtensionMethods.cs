@@ -73,4 +73,27 @@ public static class ExtensionMethods
 
 		return temp;
     }
+
+	public static Vector2 RotateVector(this Vector3 vector, float angleDegrees, float distance)
+	{
+		// Convert angle from degrees to radians
+		float angleRadians = Mathf.Deg2Rad * angleDegrees;
+
+		// Perform rotation
+		float xRotated = vector.x * (float)Mathf.Cos(angleRadians) - vector.z * (float)Mathf.Sin(angleRadians);
+		float yRotated = vector.x * (float)Mathf.Sin(angleRadians) + vector.z * (float)Mathf.Cos(angleRadians);
+
+		Vector2 v = new Vector2(xRotated, yRotated);
+		return v * distance;
+	}
+
+
+	//Changes vector from local to global Vector
+	public static Vector2 RelitiveVector(this Vector2 input, Vector3 right, Vector3 forward)
+	{
+		Vector2 temp = new Vector2(0, 0);
+		temp.x = input.x * right.x + input.y * right.z;
+		temp.y = input.y * forward.z + input.x * forward.x;
+		return temp;
+	}
 }

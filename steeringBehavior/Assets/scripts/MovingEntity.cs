@@ -26,6 +26,9 @@ public class MovingEntity : BaseGameEntity {
 	// the maximum rate (radians per second) at which this vehicle can rotate
 	public float m_fMaxTurnRate;
 
+	// the team to wich the robot belongs
+	public int teamID;
+
 	// Use this for initialization
 	public void Start () {
 		base.Start ();

@@ -6,16 +6,39 @@ public class ball : MonoBehaviour
 {
     public Vehicle currentBallHolder;
 
+    public void Start()
+    {
+        EventManager.Goal += ResetGame;
+        EventManager.GrabBall += HandleBall;
+        EventManager.LoseBall += LoseBall;
+    }
+
     private void OnCollisionEnter(Collision collision)
     {
-        if (collision.gameObject.tag == "goal")
+        switch (collision.gameObject.tag)
         {
-            this.GetComponent<Rigidbody>().isKinematic = true;
-            this.transform.position = new Vector3(105, 10, 105);
-            currentBallHolder.targetGrab = null;
-            currentBallHolder.hasBall = false;
-            currentBallHolder.aTarget = currentBallHolder.targetBall;
-            currentBallHolder.gameManager.ResetPlay();
+            case "goal":
+            EventManager.Goal.Invoke(currentBallHolder.teamID);
+                break;
+            case "death":
+                transform.position = new Vector3(transform.position.x, 5, transform.position.z);
+                break;
         }
+    }
+
+    public void ResetGame(int i)
+    {
+        currentBallHolder.targetGrab = null;
+        this.transform.position = new Vector3(100, 100, 100);
+        this.GetComponent<Rigidbody>().isKinematic = true;
+    }
+    public void HandleBall(int i, Vehicle v)
+    {
+        currentBallHolder = v;
+    }
+    
+    public void LoseBall()
+    {
+        currentBallHolder = null;
     }
 }

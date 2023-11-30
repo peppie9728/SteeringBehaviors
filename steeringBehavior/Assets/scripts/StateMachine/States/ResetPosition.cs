@@ -1,7 +1,11 @@
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
-
+//*****************************
+//
+//this state is for resetting the game.
+//
+//******************************
 public class ResetPosition : BaseState
 {
     Vehicle vehicle;
@@ -15,6 +19,8 @@ public class ResetPosition : BaseState
     {
         base.OnEnter();
         vehicle.waiting = false;
+        vehicle.aTarget = vehicle.resetPoint;
+        vehicle.m_fMaxSpeed = 5;
     }
 
     public override void OnUpdate()
@@ -26,8 +32,7 @@ public class ResetPosition : BaseState
     public override void OnFixedUpdate()
     {
         base.OnFixedUpdate();
-       Vector2 g = vehicle.GetVelocity(true,Behaviors.Seek);
-        Debug.Log(vehicle.name + ": " + (g.magnitude));
+      vehicle.GetVelocity(true,Behaviors.Seek);
         if (Vector2.Distance(vehicle.targetPos2,vehicle.m_vPos)< 1)
         {
             vehicle.waiting = true;
